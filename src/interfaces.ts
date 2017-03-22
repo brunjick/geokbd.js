@@ -9,8 +9,8 @@ export interface GlobalConfig {
 }
 
 export interface TargetConfig {
-  beforeCallback: Function;
-  afterCallback: Function;
+  beforeChange: Function;
+  afterChange: Function;
 }
 
 export interface TargetElement extends HTMLInputElement {

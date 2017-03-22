@@ -101,6 +101,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	    };
 	    GeoKBD.prepareKeypressEvent = function (evt) {
+	        var beforeChange = evt.target.GeoKBD ? evt.target.GeoKBD.beforeChange : null;
+	        var afterChange = evt.target.GeoKBD ? evt.target.GeoKBD.afterChange : null;
+	        // Invert control
+	        if (!toCallOrNotToCall(beforeChange, evt)) {
+	            return;
+	        }
 	        // Don't capture Ctrl/Meta keypress
 	        if (evt.metaKey || evt.ctrlKey) {
 	            return;
@@ -112,12 +118,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return;
 	        }
 	        if (this.config.enabled) {
-	            var beforeCb = evt.target.GeoKBD ? evt.target.GeoKBD.beforeCallback : null;
-	            var afterCb = evt.target.GeoKBD ? evt.target.GeoKBD.afterCallback : null;
-	            if (toCallOrNotToCall(beforeCb, evt)) {
-	                keypress_1.default(evt);
-	                toCallOrNotToCall(afterCb, evt);
-	            }
+	            keypress_1.default(evt);
+	            toCallOrNotToCall(afterChange, evt);
 	        }
 	    };
 	    GeoKBD.registerTheme = function (name, theme) {

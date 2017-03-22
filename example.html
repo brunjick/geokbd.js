@@ -70,11 +70,16 @@
 <script>
     var GeoKBD = window['geokbd'];
     var sharedConf = {
-        beforeCallback: function (evt) {
-            console.log('before callback', evt.target);
+        beforeChange: function (evt) {
+            console.log('before change', evt.target);
+
+            if (String.fromCharCode(evt.which).toLowerCase() === 's') {
+                // Returning false will prevent change
+                return false;
+            }
         },
-        afterCallback: function (evt) {
-            console.log('after callback', evt.target);
+        afterChange: function (evt) {
+            console.log('after change', evt.target);
         }
     };
     var targetEls = document.querySelectorAll('[geokbd]');

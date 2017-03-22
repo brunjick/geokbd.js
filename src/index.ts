@@ -64,6 +64,14 @@ class GeoKBD {
   }
 
   private static prepareKeypressEvent(evt: KeypressEvent) {
+    const beforeChange = evt.target.GeoKBD ? evt.target.GeoKBD.beforeChange : null;
+    const afterChange = evt.target.GeoKBD ? evt.target.GeoKBD.afterChange : null;
+
+    // Invert control
+    if (!toCallOrNotToCall(beforeChange, evt)) {
+      return;
+    }
+
     // Don't capture Ctrl/Meta keypress
     if (evt.metaKey || evt.ctrlKey) {
       return;
@@ -77,13 +85,8 @@ class GeoKBD {
     }
 
     if (this.config.enabled) {
-      let beforeCb = evt.target.GeoKBD ? evt.target.GeoKBD.beforeCallback : null;
-      let afterCb = evt.target.GeoKBD ? evt.target.GeoKBD.afterCallback : null;
-
-      if (toCallOrNotToCall(beforeCb, evt)) {
-        handleKeypressEvent(evt);
-        toCallOrNotToCall(afterCb, evt);
-      }
+      handleKeypressEvent(evt);
+      toCallOrNotToCall(afterChange, evt);
     }
   }
 
