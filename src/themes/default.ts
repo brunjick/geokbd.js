@@ -19,17 +19,16 @@ const TEMPLATE = [
 ].join('');
 
 class DefaultTheme extends AbstractTheme {
-  private root?: Element;
-  private state?: Element;
-  private hotkey?: Element;
-  private visibilityState = false;
+  private root?: Element | null;
+  private state?: Element | null;
+  private hotkey?: Element | null;
 
   constructor(config: GlobalConfig) {
     super(config);
 
     this.root = createDivWithHtml(TEMPLATE);
-    this.state = (this.root.querySelector('.' + CLASSNAME_STATE) as Element);
-    this.hotkey = (this.root.querySelector('.' + CLASSNAME_HOTKEY) as Element);
+    this.state = this.root.querySelector('.' + CLASSNAME_STATE);
+    this.hotkey = this.root.querySelector('.' + CLASSNAME_HOTKEY);
     this.setVisibility(false);
     this.setHotkeyText(config.hotkey);
     this.setEnabledText(config.enabled);
@@ -48,9 +47,13 @@ class DefaultTheme extends AbstractTheme {
   }
 
   public destroy() {
-    (this.root as Element).remove();
+    if (this.root instanceof Element) {
+      this.root.remove();
+    }
+
     this.root = undefined;
     this.state = undefined;
+    this.hotkey = undefined;
   }
 
   private handleFocusEvent(): void {
@@ -62,17 +65,22 @@ class DefaultTheme extends AbstractTheme {
   }
 
   private setHotkeyText(hotkey: string): void {
-    (this.hotkey as Element).innerHTML = hotkey;
+    if (this.hotkey instanceof Element) {
+      this.hotkey.innerHTML = hotkey;
+    }
   }
 
   private setEnabledText(isEnabled: boolean): void {
-    (this.state as Element).innerHTML = isEnabled ? TEXT_ENABLED : TEXT_DISABLED;
+    if (this.state instanceof Element) {
+      this.state.innerHTML = isEnabled ? TEXT_ENABLED : TEXT_DISABLED;
+    }
   }
 
   private setVisibility = debounce(
     function (isVisible: boolean): void {
-      (this.root as Element)
-            .className = isVisible ? CLASSNAME_VISIBLE : CLASSNAME_HIDDEN;
+      if (this.root instanceof Element) {
+        this.root.className = isVisible ? CLASSNAME_VISIBLE : CLASSNAME_HIDDEN;
+      }
     },
     100,
   );

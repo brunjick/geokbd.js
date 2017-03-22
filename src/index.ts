@@ -40,17 +40,18 @@ class GeoKBD {
   }
 
   private static createReactiveConfig(config: GlobalConfig): void {
-    const context = this;
     this.shadowConfig = config;
 
     Object.keys(DEFAULT_CONFIG).forEach((propName: string) => {
       Object.defineProperty(this.config, propName, {
         get: function () {
-          return context.shadowConfig[propName];
+          return GeoKBD.shadowConfig[propName];
         },
         set: function (newValue) {
-          context.shadowConfig[propName] = newValue;
-          (context.activeTheme as AbstractTheme).handleConfigChange(context.config);
+          GeoKBD.shadowConfig[propName] = newValue;
+          if (GeoKBD.activeTheme instanceof AbstractTheme) {
+            GeoKBD.activeTheme.handleConfigChange(GeoKBD.config);
+          }
         },
       });
     });
