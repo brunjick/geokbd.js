@@ -72,6 +72,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.initialized = true;
 	    };
 	    GeoKBD.attach = function (target, config) {
+	        if (!this.initialized) {
+	            console.warn("attach() can't be called until initialize()");
+	            return;
+	        }
 	        target.addEventListener('keypress', this.prepareKeypressEvent.bind(this));
 	        target.GeoKBD = config;
 	        if (GeoKBD.activeTheme) {

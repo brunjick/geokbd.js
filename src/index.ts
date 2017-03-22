@@ -31,6 +31,11 @@ class GeoKBD {
   }
 
   public static attach(target: TargetElement, config: TargetConfig) {
+    if (!this.initialized) {
+      console.warn("attach() can't be called until initialize()");
+      return;
+    }
+
     target.addEventListener('keypress', this.prepareKeypressEvent.bind(this));
     target.GeoKBD = config;
 
