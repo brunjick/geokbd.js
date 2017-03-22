@@ -1,0 +1,46 @@
+{
+  "name": "geokbd.js",
+  "version": "1.0.0",
+  "description": "Georgian virtual keyboard",
+  "author": "Mirza Brunjadze <brunjadzem@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "main": "./dist/js/geokbd.min.js",
+  "scripts": {
+    "dev": "webpack --mode=dev",
+    "watch": "webpack --progress --colors --watch --mode=dev",
+    "lint": "./node_modules/.bin/tslint -c ./tslint.json ./src/**/*.ts",
+    "build": "npm run lint && webpack --mode=build"
+  },
+  "devDependencies": {
+    "babel": "6.3.13",
+    "babel-core": "6.1.18",
+    "babel-eslint": "5.0.0",
+    "babel-loader": "6.1.0",
+    "babel-plugin-add-module-exports": "0.1.2",
+    "babel-preset-es2015": "6.3.13",
+    "ts-loader": "^2.0.2",
+    "tslint": "^4.5.1",
+    "typescript": "^2.2.1",
+    "webpack": "1.12.9",
+    "yargs": "3.32.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brunjick/geokbd.js.git"
+  },
+  "keywords": [
+    "georgian",
+    "keyboard",
+    "geokbd.js"
+  ],
+  "bugs": {
+    "url": "https://github.com/brunjick/geokbd.js/issues"
+  },
+  "homepage": "https://github.com/brunjick/geokbd.js",
+  "dependencies": {
+    "ts-loader": "^2.0.2",
+    "tslint": "^4.5.1",
+    "typescript": "^2.2.1"
+  }
+}

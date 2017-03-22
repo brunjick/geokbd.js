@@ -1,0 +1,22 @@
+{
+  "name": "geokbd.js",
+  "description": "Georgian virtual keyboard",
+  "main": "./dist/js/geokbd.min.js",
+  "authors": [
+    "Mirza Brunjadze <brunjadzem@gmail.com>"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "georgian",
+    "keyboard",
+    "geokbd.js"
+  ],
+  "homepage": "https://github.com/brunjick/geokbd.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
