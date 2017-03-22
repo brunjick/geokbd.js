@@ -66,8 +66,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (config === void 0) {
 	            config = {};
 	        }
-	        this.assignReactiveConfig(mergeConfig(defaults_1.DEFAULT_CONFIG, config));
-	        this.registerTheme('default', default_1.default);
+	        this.createReactiveConfig(mergeWithDefaultConfig(config));
+	        this.registerDefaultThemeIfRequired();
 	        this.initializeTheme();
 	        this.initialized = true;
 	    };
@@ -78,21 +78,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	            GeoKBD.activeTheme.hook(target);
 	        }
 	    };
-	    GeoKBD.assignReactiveConfig = function (config) {
+	    GeoKBD.createReactiveConfig = function (config) {
 	        var _this = this;
-	        var context = this;
 	        this.shadowConfig = config;
 	        Object.keys(defaults_1.DEFAULT_CONFIG).forEach(function (propName) {
 	            Object.defineProperty(_this.config, propName, {
 	                get: function get() {
-	                    return context.shadowConfig[propName];
+	                    return GeoKBD.shadowConfig[propName];
 	                },
 	                set: function set(newValue) {
-	                    context.shadowConfig[propName] = newValue;
-	                    context.activeTheme.handleConfigChange(context.config);
+	                    GeoKBD.shadowConfig[propName] = newValue;
+	                    if (GeoKBD.activeTheme instanceof abstract_1.default) {
+	                        GeoKBD.activeTheme.handleConfigChange(GeoKBD.config);
+	                    }
 	                }
 	            });
 	        });
+	    };
+	    GeoKBD.registerDefaultThemeIfRequired = function () {
+	        if (this.config.theme === 'default') {
+	            this.registerTheme('default', default_1.default);
+	        }
 	    };
 	    GeoKBD.prepareKeypressEvent = function (evt) {
 	        // Don't capture Ctrl/Meta keypress
@@ -160,9 +166,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    return true;
 	}
-	function mergeConfig(configOne, configTwo) {
+	function mergeWithDefaultConfig(mergeFrom) {
 	    var merged = Object.keys(defaults_1.DEFAULT_CONFIG).reduce(function (mergedConfig, propName) {
-	        mergedConfig[propName] = configOne.hasOwnProperty(propName) ? configOne[propName] : configTwo.hasOwnProperty(propName) ? configTwo[propName] : defaults_1.DEFAULT_CONFIG[propName];
+	        mergedConfig[propName] = mergeFrom.hasOwnProperty(propName) ? mergeFrom[propName] : defaults_1.DEFAULT_CONFIG[propName];
 	        return mergedConfig;
 	    }, {});
 	    return merged;
@@ -236,9 +242,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __extends(DefaultTheme, _super);
 	    function DefaultTheme(config) {
 	        var _this = _super.call(this, config) || this;
-	        _this.visibilityState = false;
 	        _this.setVisibility = debounce_1.debounce(function (isVisible) {
-	            this.root.className = isVisible ? CLASSNAME_VISIBLE : CLASSNAME_HIDDEN;
+	            if (this.root instanceof Element) {
+	                this.root.className = isVisible ? CLASSNAME_VISIBLE : CLASSNAME_HIDDEN;
+	            }
 	        }, 100);
 	        _this.root = createDivWithHtml(TEMPLATE);
 	        _this.state = _this.root.querySelector('.' + CLASSNAME_STATE);
@@ -258,9 +265,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.setEnabledText(config.enabled);
 	    };
 	    DefaultTheme.prototype.destroy = function () {
-	        this.root.remove();
+	        if (this.root instanceof Element) {
+	            this.root.remove();
+	        }
 	        this.root = undefined;
 	        this.state = undefined;
+	        this.hotkey = undefined;
 	    };
 	    DefaultTheme.prototype.handleFocusEvent = function () {
 	        this.setVisibility(true);
@@ -269,10 +279,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.setVisibility(false);
 	    };
 	    DefaultTheme.prototype.setHotkeyText = function (hotkey) {
-	        this.hotkey.innerHTML = hotkey;
+	        if (this.hotkey instanceof Element) {
+	            this.hotkey.innerHTML = hotkey;
+	        }
 	    };
 	    DefaultTheme.prototype.setEnabledText = function (isEnabled) {
-	        this.state.innerHTML = isEnabled ? TEXT_ENABLED : TEXT_DISABLED;
+	        if (this.state instanceof Element) {
+	            this.state.innerHTML = isEnabled ? TEXT_ENABLED : TEXT_DISABLED;
+	        }
 	    };
 	    return DefaultTheme;
 	}(abstract_1.default);
