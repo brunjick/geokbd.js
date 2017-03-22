@@ -37,10 +37,5 @@
   "bugs": {
     "url": "https://github.com/brunjick/geokbd.js/issues"
   },
-  "homepage": "https://github.com/brunjick/geokbd.js",
-  "dependencies": {
-    "ts-loader": "^2.0.2",
-    "tslint": "^4.5.1",
-    "typescript": "^2.2.1"
-  }
+  "homepage": "https://github.com/brunjick/geokbd.js"
 }
