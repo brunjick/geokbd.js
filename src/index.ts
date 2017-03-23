@@ -32,7 +32,12 @@ class GeoKBD {
 
   public static attach(target: TargetElement, config: TargetConfig) {
     if (!this.initialized) {
-      console.warn("attach() can't be called until initialize()");
+      warn("attach() can't be called until initialize().");
+      return;
+    }
+
+    if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLTextAreaElement)) {
+      warn('only works for <input> and <textarea> elements.');
       return;
     }
 
@@ -117,18 +122,22 @@ class GeoKBD {
     const themeClass = this.themes[this.config.theme];
 
     if (typeof themeClass !== 'function') {
-      console.warn("Can't instantiate theme");
+      warn("Can't instantiate theme.");
       return;
     }
     let theme = new themeClass(this.config);
 
     if (!(theme instanceof AbstractTheme)) {
-      console.warn("Theme doesn't extend AbstractTheme");
+      warn("Theme doesn't extend AbstractTheme");
       return;
     } else {
       this.activeTheme = theme;
     }
   }
+}
+
+function warn(message: string): void {
+  console.warn('[geokbd] - ' + message);
 }
 
 function toCallOrNotToCall(fn: any, ...args: any[]): boolean {
