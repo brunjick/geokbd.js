@@ -68,7 +68,8 @@
 
 <script src="./dist/js/geokbd.js"></script>
 <script>
-    var GeoKBD = window['geokbd'];
+    var GeoKBD = window['geokbd'], slice = [].slice;
+    var targetEls = document.querySelectorAll('[geokbd]');
     var sharedConf = {
         beforeChange: function (evt) {
             console.log('before change', evt.target);
@@ -82,10 +83,9 @@
             console.log('after change', evt.target);
         }
     };
-    var targetEls = document.querySelectorAll('[geokbd]');
 
     GeoKBD.initialize();
-    Array.prototype.slice.call(targetEls, 0).forEach(function (target) {
+    slice.call(targetEls).forEach(function (target) {
         GeoKBD.attach(target, sharedConf);
     });
 </script>
