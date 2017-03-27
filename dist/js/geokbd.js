@@ -73,7 +73,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 	    GeoKBD.attach = function (target, config) {
 	        if (!this.initialized) {
-	            console.warn("attach() can't be called until initialize()");
+	            warn("attach() can't be called until initialize().");
+	            return;
+	        }
+	        if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLTextAreaElement)) {
+	            warn('only works for <input> and <textarea> elements.');
 	            return;
 	        }
 	        target.addEventListener('keypress', this.prepareKeypressEvent.bind(this));
@@ -145,12 +149,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    GeoKBD.initializeTheme = function () {
 	        var themeClass = this.themes[this.config.theme];
 	        if (typeof themeClass !== 'function') {
-	            console.warn("Can't instantiate theme");
+	            warn("Can't instantiate theme.");
 	            return;
 	        }
 	        var theme = new themeClass(this.config);
 	        if (!(theme instanceof abstract_1.default)) {
-	            console.warn("Theme doesn't extend AbstractTheme");
+	            warn("Theme doesn't extend AbstractTheme");
 	            return;
 	        } else {
 	            this.activeTheme = theme;
@@ -162,6 +166,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	GeoKBD.config = defaults_1.DEFAULT_CONFIG;
 	GeoKBD.shadowConfig = {};
 	GeoKBD.initialized = false;
+	function warn(message) {
+	    console.warn('[geokbd] - ' + message);
+	}
 	function toCallOrNotToCall(fn) {
 	    var args = [];
 	    for (var _i = 1; _i < arguments.length; _i++) {
@@ -241,8 +248,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var CLASSNAME = 'geokbd--statusMessage';
 	var CLASSNAME_STATE = CLASSNAME + '-state';
 	var CLASSNAME_HOTKEY = CLASSNAME + '-hotkey';
-	var CLASSNAME_HIDDEN = CLASSNAME + ' hidden';
-	var CLASSNAME_VISIBLE = CLASSNAME + ' visible';
+	var CLASSNAME_HIDDEN = CLASSNAME + ' geokbd--hidden';
+	var CLASSNAME_VISIBLE = CLASSNAME + ' geokbd--visible';
 	var TEMPLATE = ['<div class="' + CLASSNAME + '-text">', 'ქართული კლავიატურა: <u class="' + CLASSNAME_STATE + '"></u><br>', 'ჩართვა/გამორთვა კლავიშით (\'<span class="' + CLASSNAME_HOTKEY + '"></span>\')', '</div>'].join('');
 	var DefaultTheme = function (_super) {
 	    __extends(DefaultTheme, _super);
@@ -256,7 +263,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.root = createDivWithHtml(TEMPLATE);
 	        _this.state = _this.root.querySelector('.' + CLASSNAME_STATE);
 	        _this.hotkey = _this.root.querySelector('.' + CLASSNAME_HOTKEY);
-	        _this.setVisibility(false);
+	        _this.root.className = CLASSNAME;
 	        _this.setHotkeyText(config.hotkey);
 	        _this.setEnabledText(config.enabled);
 	        document.body.appendChild(_this.root);
