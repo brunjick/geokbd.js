@@ -8,8 +8,8 @@ const TEXT_DISABLED = 'გამორთულია';
 const CLASSNAME = 'geokbd--statusMessage';
 const CLASSNAME_STATE = CLASSNAME + '-state';
 const CLASSNAME_HOTKEY = CLASSNAME + '-hotkey';
-const CLASSNAME_HIDDEN = CLASSNAME + ' hidden';
-const CLASSNAME_VISIBLE = CLASSNAME + ' visible';
+const CLASSNAME_HIDDEN = CLASSNAME + ' geokbd--hidden';
+const CLASSNAME_VISIBLE = CLASSNAME + ' geokbd--visible';
 
 const TEMPLATE = [
   '<div class="' + CLASSNAME + '-text">',
@@ -29,7 +29,7 @@ class DefaultTheme extends AbstractTheme {
     this.root = createDivWithHtml(TEMPLATE);
     this.state = this.root.querySelector('.' + CLASSNAME_STATE);
     this.hotkey = this.root.querySelector('.' + CLASSNAME_HOTKEY);
-    this.setVisibility(false);
+    this.root.className = CLASSNAME;
     this.setHotkeyText(config.hotkey);
     this.setEnabledText(config.enabled);
 

@@ -15,12 +15,12 @@
     z-index: 999;
 }
 
-.geokbd--statusMessage.hidden {
+.geokbd--statusMessage.geokbd--hidden {
     display: flex;
     animation-name: geokbd--slideOutUp;
 }
 
-.geokbd--statusMessage.visible {
+.geokbd--statusMessage.geokbd--visible {
     display: flex;
     animation-name: geokbd--slideInDown;
 }
