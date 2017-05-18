@@ -69,6 +69,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.createReactiveConfig(mergeWithDefaultConfig(config));
 	        this.registerDefaultThemeIfRequired();
 	        this.initializeTheme();
+	        this.prepareKeypressEvent = this.prepareKeypressEvent.bind(this);
 	        this.initialized = true;
 	    };
 	    GeoKBD.attach = function (target, config) {
@@ -80,10 +81,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	            warn('only works for <input> and <textarea> elements.');
 	            return;
 	        }
-	        target.addEventListener('keypress', this.prepareKeypressEvent.bind(this));
 	        target.GeoKBD = config;
+	        target.addEventListener('keypress', this.prepareKeypressEvent);
 	        if (GeoKBD.activeTheme) {
-	            GeoKBD.activeTheme.hook(target);
+	            GeoKBD.activeTheme.onAttach(target);
+	        }
+	    };
+	    GeoKBD.detach = function (target) {
+	        delete target.GeoKBD;
+	        target.removeEventListener('keypress', this.prepareKeypressEvent);
+	        if (GeoKBD.activeTheme) {
+	            GeoKBD.activeTheme.onDetach(target);
 	        }
 	    };
 	    GeoKBD.createReactiveConfig = function (config) {
@@ -97,7 +105,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                set: function set(newValue) {
 	                    GeoKBD.shadowConfig[propName] = newValue;
 	                    if (GeoKBD.activeTheme instanceof abstract_1.default) {
-	                        GeoKBD.activeTheme.handleConfigChange(GeoKBD.config);
+	                        GeoKBD.activeTheme.onConfigurationChange(GeoKBD.config);
 	                    }
 	                }
 	            });
@@ -260,6 +268,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this.root.className = isVisible ? CLASSNAME_VISIBLE : CLASSNAME_HIDDEN;
 	            }
 	        }, 100);
+	        _this.handleFocusEvent = _this.handleFocusEvent.bind(_this);
+	        _this.handleBlurEvent = _this.handleBlurEvent.bind(_this);
 	        _this.root = createDivWithHtml(TEMPLATE);
 	        _this.state = _this.root.querySelector('.' + CLASSNAME_STATE);
 	        _this.hotkey = _this.root.querySelector('.' + CLASSNAME_HOTKEY);
@@ -269,15 +279,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	        document.body.appendChild(_this.root);
 	        return _this;
 	    }
-	    DefaultTheme.prototype.hook = function (target) {
-	        target.addEventListener('focus', this.handleFocusEvent.bind(this));
-	        target.addEventListener('blur', this.handleBlurEvent.bind(this));
+	    DefaultTheme.prototype.onAttach = function (target) {
+	        target.addEventListener('focus', this.handleFocusEvent);
+	        target.addEventListener('blur', this.handleBlurEvent);
 	    };
-	    DefaultTheme.prototype.handleConfigChange = function (config) {
+	    DefaultTheme.prototype.onConfigurationChange = function (config) {
 	        this.setHotkeyText(config.hotkey);
 	        this.setEnabledText(config.enabled);
 	    };
-	    DefaultTheme.prototype.destroy = function () {
+	    DefaultTheme.prototype.onDetach = function (target) {
+	        target.removeEventListener('focus', this.handleFocusEvent);
+	        target.removeEventListener('blur', this.handleBlurEvent);
+	    };
+	    DefaultTheme.prototype.onDestroy = function () {
 	        if (this.root instanceof Element) {
 	            this.root.remove();
 	        }
