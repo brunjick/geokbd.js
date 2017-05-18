@@ -27,6 +27,8 @@ class GeoKBD {
     this.createReactiveConfig(mergeWithDefaultConfig(config));
     this.registerDefaultThemeIfRequired();
     this.initializeTheme();
+
+    this.prepareKeypressEvent = this.prepareKeypressEvent.bind(this);
     this.initialized = true;
   }
 
@@ -41,11 +43,20 @@ class GeoKBD {
       return;
     }
 
-    target.addEventListener('keypress', this.prepareKeypressEvent.bind(this));
     target.GeoKBD = config;
+    target.addEventListener('keypress', this.prepareKeypressEvent);
 
     if (GeoKBD.activeTheme) {
-      GeoKBD.activeTheme.hook(target);
+      GeoKBD.activeTheme.onAttach(target);
+    }
+  }
+
+  public static detach(target: TargetElement) {
+    delete target.GeoKBD;
+    target.removeEventListener('keypress', this.prepareKeypressEvent);
+
+    if (GeoKBD.activeTheme) {
+      GeoKBD.activeTheme.onDetach(target);
     }
   }
 
@@ -60,7 +71,7 @@ class GeoKBD {
         set: function (newValue) {
           GeoKBD.shadowConfig[propName] = newValue;
           if (GeoKBD.activeTheme instanceof AbstractTheme) {
-            GeoKBD.activeTheme.handleConfigChange(GeoKBD.config);
+            GeoKBD.activeTheme.onConfigurationChange(GeoKBD.config);
           }
         },
       });

@@ -57,6 +57,11 @@
 
         <a class="github-link" href="https://github.com/brunjick/geokbd.js">Source on GitHub</a>
 
+        <div style="margin-top: 20px">
+          <button onclick="attachAll()">Attach All</button>
+          <button onclick="detachAll()">Detach All</button>
+        </div>
+
         <div class="demo">
             <h3>&lt;textarea&gt;</h3>
             <textarea geokbd></textarea>
@@ -68,26 +73,46 @@
 
 <script src="./dist/js/geokbd.js"></script>
 <script>
-    var GeoKBD = window['geokbd'], slice = [].slice;
-    var targetEls = document.querySelectorAll('[geokbd]');
-    var sharedConf = {
-        beforeChange: function (evt) {
-            console.log('before change', evt.target);
+  let GeoKBD = window['geokbd'], slice = [].slice;
 
-            if (String.fromCharCode(evt.which).toLowerCase() === 's') {
-                // Returning false will prevent change
-                return false;
-            }
-        },
-        afterChange: function (evt) {
-            console.log('after change', evt.target);
+  // Get all elements with 'geokbd' attribute
+  // and convert NodeList to normal Array object
+  let $inputElements = slice.call(
+    document.querySelectorAll('[geokbd]')
+  );
+
+  // Initialize
+  GeoKBD.initialize();
+  attachAll();
+
+  // Attach plugin functionality to all target elements
+  function attachAll() {
+    // Optional configuration
+    let sharedConf = {
+      // Called before input changes
+      beforeChange: function (evt) {
+        console.log('before change', evt.target);
+
+        if (String.fromCharCode(evt.which).toLowerCase() === 's') {
+          // Returning false will prevent change,
+          // therefore afterChange() won't be called
+          return false;
         }
+      },
+
+      // Called after input changes
+      afterChange: function (evt) {
+        console.log('after change', evt.target);
+      }
     };
 
-    GeoKBD.initialize();
-    slice.call(targetEls).forEach(function (target) {
-        GeoKBD.attach(target, sharedConf);
-    });
+    $inputElements.forEach(target => GeoKBD.attach(target, sharedConf));
+  }
+
+  // Detach from all target elements
+  function detachAll() {
+    $inputElements.forEach(target => GeoKBD.detach(target));
+  }
 </script>
 </body>
 </html>

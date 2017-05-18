@@ -26,6 +26,9 @@ class DefaultTheme extends AbstractTheme {
   constructor(config: GlobalConfig) {
     super(config);
 
+    this.handleFocusEvent = this.handleFocusEvent.bind(this);
+    this.handleBlurEvent = this.handleBlurEvent.bind(this);
+
     this.root = createDivWithHtml(TEMPLATE);
     this.state = this.root.querySelector('.' + CLASSNAME_STATE);
     this.hotkey = this.root.querySelector('.' + CLASSNAME_HOTKEY);
@@ -36,17 +39,22 @@ class DefaultTheme extends AbstractTheme {
     document.body.appendChild(this.root);
   }
 
-  public hook(target: TargetElement): void {
-    target.addEventListener('focus', this.handleFocusEvent.bind(this));
-    target.addEventListener('blur', this.handleBlurEvent.bind(this));
+  public onAttach(target: TargetElement): void {
+    target.addEventListener('focus', this.handleFocusEvent);
+    target.addEventListener('blur', this.handleBlurEvent);
   }
 
-  public handleConfigChange(config: GlobalConfig): void {
+  public onConfigurationChange(config: GlobalConfig): void {
     this.setHotkeyText(config.hotkey);
     this.setEnabledText(config.enabled);
   }
 
-  public destroy() {
+  public onDetach(target: TargetElement): void {
+    target.removeEventListener('focus', this.handleFocusEvent);
+    target.removeEventListener('blur', this.handleBlurEvent);
+  }
+
+  public onDestroy() {
     if (this.root instanceof Element) {
       this.root.remove();
     }
@@ -86,8 +94,8 @@ class DefaultTheme extends AbstractTheme {
   );
 }
 
-function createDivWithHtml(html: string): Element {
-  let el: Element;
+function createDivWithHtml(html: string): HTMLDivElement {
+  let el: HTMLDivElement;
   el = document.createElement('div');
   el.innerHTML = html;
 
