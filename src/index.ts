@@ -95,7 +95,11 @@ class GeoKBD {
       return;
     }
 
-    if (this.config.enabled && isInEnglishAlphabetRange(evt.keyCode)) {
+    if (
+      this.config.enabled &&
+      isInEnglishAlphabetRange(evt.keyCode) &&
+      isInEnglishAlphabetRange(evt.key.charCodeAt(0))
+    ) {
       stopEvent(evt);
     } else if (this.config.hotkey === evt.key) {
       this.config.enabled = !this.config.enabled;
