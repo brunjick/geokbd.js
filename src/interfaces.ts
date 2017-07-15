@@ -17,11 +17,8 @@ export interface TargetElement extends HTMLInputElement {
   GeoKBD: TargetConfig;
 }
 
-export interface KeypressEvent extends Event {
-  metaKey: boolean;
-  ctrlKey: boolean;
+export interface CustomKeyboardEvent extends KeyboardEvent {
   target: TargetElement;
-  which: number;
 }
 
 export interface OffsetRange {

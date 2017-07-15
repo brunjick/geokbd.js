@@ -1,5 +1,4 @@
 import AbstractTheme from './abstract';
-import { debounce } from '../debounce';
 import { GlobalConfig, TargetElement } from '../interfaces';
 
 const TEXT_ENABLED = 'ჩართულია';
@@ -13,9 +12,11 @@ const CLASSNAME_VISIBLE = CLASSNAME + ' geokbd--visible';
 
 const TEMPLATE = [
   '<div class="' + CLASSNAME + '-text">',
-    'ქართული კლავიატურა: <u class="' + CLASSNAME_STATE + '"></u><br>',
-    'ჩართვა/გამორთვა კლავიშით (\'<span class="' + CLASSNAME_HOTKEY + '"></span>\')',
-  '</div>',
+  'ქართული კლავიატურა: <u class="' + CLASSNAME_STATE + '"></u><br>',
+  'ჩართვა/გამორთვა კლავიშით (\'<span class="' +
+    CLASSNAME_HOTKEY +
+    '"></span>\')',
+  '</div>'
 ].join('');
 
 class DefaultTheme extends AbstractTheme {
@@ -84,14 +85,11 @@ class DefaultTheme extends AbstractTheme {
     }
   }
 
-  private setVisibility = debounce(
-    function (isVisible: boolean): void {
-      if (this.root instanceof Element) {
-        this.root.className = isVisible ? CLASSNAME_VISIBLE : CLASSNAME_HIDDEN;
-      }
-    },
-    100,
-  );
+  private setVisibility = debounce(function(isVisible: boolean): void {
+    if (this.root instanceof Element) {
+      this.root.className = isVisible ? CLASSNAME_VISIBLE : CLASSNAME_HIDDEN;
+    }
+  }, 100);
 }
 
 function createDivWithHtml(html: string): HTMLDivElement {
@@ -100,6 +98,22 @@ function createDivWithHtml(html: string): HTMLDivElement {
   el.innerHTML = html;
 
   return el;
+}
+
+function debounce(fn: Function, wait: number): Function {
+  let timeout: number;
+
+  return function() {
+    const context = this;
+    const args = arguments;
+
+    const later = function() {
+      fn.apply(context, args);
+    };
+
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
 }
 
 export default DefaultTheme;

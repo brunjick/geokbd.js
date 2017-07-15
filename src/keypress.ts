@@ -1,4 +1,4 @@
-import { KeypressEvent, OffsetRange } from './interfaces';
+import { OffsetRange } from './interfaces';
 
 const ALPHABET = 'abgdevzTiklmnopJrstufqRySCcZwWxjh';
 const BASE_INDEX = 4304;
@@ -13,50 +13,68 @@ function convertChar(charIndex: number) {
   return charIndex;
 }
 
-function isSelectionSupported($input: HTMLInputElement): boolean {
-  return typeof $input.selectionStart === 'number' && typeof $input.selectionEnd === 'number';
+function isSelectionSupported(el: HTMLInputElement): boolean {
+  return (
+    typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number'
+  );
 }
 
-function getInputSelection($input: HTMLInputElement): OffsetRange {
+function getInputSelection(el: HTMLInputElement): OffsetRange {
   let start = 0;
   let end = 0;
 
-  if (isSelectionSupported($input)) {
-    start = $input.selectionStart;
-    end = $input.selectionEnd;
+  if (isSelectionSupported(el)) {
+    start = el.selectionStart;
+    end = el.selectionEnd;
   }
 
   return { start, end };
 }
 
-function setInputSelection($input: HTMLInputElement, offset: OffsetRange): void {
-  if (isSelectionSupported($input)) {
-    $input.selectionStart = offset.start;
-    $input.selectionEnd = offset.end;
+function setInputSelection(el: HTMLInputElement, offset: OffsetRange): void {
+  if (isSelectionSupported(el)) {
+    el.selectionStart = offset.start;
+    el.selectionEnd = offset.end;
   }
 
   // A little 'hack' to keep natural browser behavior while typing
-  $input.blur();
-  $input.focus();
+  el.blur();
+  el.focus();
 }
 
-export default function handleKeypress(evt: KeypressEvent): void {
-  const $input = evt.target;
-  const which = evt.which;
-  const to = convertChar(which);
+function dispatchCustomKeypressEvent(evt: KeyboardEvent, charCode: number) {
+  const customEvent: KeyboardEvent = new KeyboardEvent('keypress', {
+    key: String.fromCharCode(charCode),
+    // keyCode: charCode,
+    // charCode: charCode,
+    code: evt.code,
+    location: evt.location,
+    repeat: evt.repeat
+  });
+
+  evt.target.dispatchEvent(customEvent);
+}
+
+export default function handleKeypress(evt: KeyboardEvent): void {
+  const el = evt.target as HTMLInputElement;
+  const charCode = evt.key.charCodeAt(0);
+  const mappedCharCode = convertChar(charCode);
 
   // Don't take any action if conversion didn't happen
-  if (which === to) {
+  if (charCode === mappedCharCode) {
     return;
   }
-  evt.preventDefault();
 
   // Insert converted char
-  const sel = getInputSelection($input);
-  const val = $input.value;
+  const sel = getInputSelection(el);
+  const val = el.value;
 
-  $input.value = val.slice(0, sel.start) + String.fromCharCode(to) + val.slice(sel.end);
+  el.value =
+    val.slice(0, sel.start) +
+    String.fromCharCode(mappedCharCode) +
+    val.slice(sel.end);
 
   // Move caret to correct position
-  setInputSelection($input, { start: sel.start + 1, end: sel.start + 1 });
+  setInputSelection(el, { start: sel.start + 1, end: sel.start + 1 });
+  dispatchCustomKeypressEvent(evt, mappedCharCode);
 }

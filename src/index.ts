@@ -3,13 +3,13 @@ import {
   GlobalConfig,
   TargetConfig,
   TargetElement,
-  KeypressEvent,
+  CustomKeyboardEvent
 } from './interfaces';
 import {
   DEFAULT_THEME,
   DEFAULT_HOTKEY,
   DEFAULT_ENABLED,
-  DEFAULT_CONFIG,
+  DEFAULT_CONFIG
 } from './defaults';
 
 import AbstractTheme from './themes/abstract';
@@ -28,7 +28,8 @@ class GeoKBD {
     this.registerDefaultThemeIfRequired();
     this.initializeTheme();
 
-    this.prepareKeypressEvent = this.prepareKeypressEvent.bind(this);
+    this.onKeydownHandler = this.onKeydownHandler.bind(this);
+    this.onKeyupHandler = this.onKeyupHandler.bind(this);
     this.initialized = true;
   }
 
@@ -38,13 +39,17 @@ class GeoKBD {
       return;
     }
 
-    if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLTextAreaElement)) {
+    if (
+      !(target instanceof HTMLInputElement) &&
+      !(target instanceof HTMLTextAreaElement)
+    ) {
       warn('only works for <input> and <textarea> elements.');
       return;
     }
 
     target.GeoKBD = config;
-    target.addEventListener('keypress', this.prepareKeypressEvent);
+    target.addEventListener('keydown', this.onKeydownHandler);
+    target.addEventListener('keyup', this.onKeyupHandler);
 
     if (GeoKBD.activeTheme) {
       GeoKBD.activeTheme.onAttach(target);
@@ -53,7 +58,8 @@ class GeoKBD {
 
   public static detach(target: TargetElement) {
     delete target.GeoKBD;
-    target.removeEventListener('keypress', this.prepareKeypressEvent);
+    target.removeEventListener('keydown', this.onKeydownHandler);
+    target.removeEventListener('keyup', this.onKeyupHandler);
 
     if (GeoKBD.activeTheme) {
       GeoKBD.activeTheme.onDetach(target);
@@ -65,15 +71,15 @@ class GeoKBD {
 
     Object.keys(DEFAULT_CONFIG).forEach((propName: string) => {
       Object.defineProperty(this.config, propName, {
-        get: function () {
+        get: function() {
           return GeoKBD.shadowConfig[propName];
         },
-        set: function (newValue) {
+        set: function(newValue) {
           GeoKBD.shadowConfig[propName] = newValue;
           if (GeoKBD.activeTheme instanceof AbstractTheme) {
             GeoKBD.activeTheme.onConfigurationChange(GeoKBD.config);
           }
-        },
+        }
       });
     });
   }
@@ -84,31 +90,46 @@ class GeoKBD {
     }
   }
 
-  private static prepareKeypressEvent(evt: KeypressEvent) {
-    const beforeChange = evt.target.GeoKBD ? evt.target.GeoKBD.beforeChange : null;
-    const afterChange = evt.target.GeoKBD ? evt.target.GeoKBD.afterChange : null;
+  private static onKeydownHandler(evt: KeyboardEvent) {
+    if (isSpecialKeyPressed(evt)) {
+      return;
+    }
 
-    // Invert control
+    if (this.config.enabled && isInEnglishAlphabetRange(evt.keyCode)) {
+      stopEvent(evt);
+    } else if (this.config.hotkey === evt.key) {
+      this.config.enabled = !this.config.enabled;
+      stopEvent(evt);
+    }
+  }
+
+  private static onKeyupHandler(evt: CustomKeyboardEvent) {
+    if (isSpecialKeyPressed(evt) || !isInEnglishAlphabetRange(evt.keyCode)) {
+      return;
+    }
+
+    // Call beforeChange callback
+    const beforeChange = evt.target.GeoKBD
+      ? evt.target.GeoKBD.beforeChange
+      : null;
+    const afterChange = evt.target.GeoKBD
+      ? evt.target.GeoKBD.afterChange
+      : null;
+
     if (!toCallOrNotToCall(beforeChange, evt)) {
       return;
     }
 
-    // Don't capture Ctrl/Meta keypress
-    if (evt.metaKey || evt.ctrlKey) {
+    // Return if not enabled
+    if (!this.config.enabled) {
       return;
     }
 
-    // Check if hotkey was pressed
-    if (this.config.hotkey === String.fromCharCode(evt.which)) {
-      evt.preventDefault();
-      this.config.enabled = !this.config.enabled;
-      return;
-    }
+    stopEvent(evt);
+    handleKeypressEvent(evt);
 
-    if (this.config.enabled) {
-      handleKeypressEvent(evt);
-      toCallOrNotToCall(afterChange, evt);
-    }
+    // Call afterChange callback
+    toCallOrNotToCall(afterChange, evt);
   }
 
   public static registerTheme(name: string, theme: any) {
@@ -159,15 +180,30 @@ function toCallOrNotToCall(fn: any, ...args: any[]): boolean {
   return true;
 }
 
-function mergeWithDefaultConfig(mergeFrom: Object): GlobalConfig {
-  const merged = Object.keys(DEFAULT_CONFIG)
-    .reduce((mergedConfig: Object, propName: string): Object => {
-      mergedConfig[propName] = mergeFrom.hasOwnProperty(propName)
-        ? mergeFrom[propName]
-        : DEFAULT_CONFIG[propName];
+function isSpecialKeyPressed(evt: KeyboardEvent) {
+  return evt.metaKey || evt.ctrlKey || evt.altKey;
+}
 
-      return mergedConfig;
-    }, {});
+function isInEnglishAlphabetRange(charCode: number) {
+  return (
+    (charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122)
+  );
+}
+
+function stopEvent(evt: Event) {
+  evt.preventDefault();
+}
+
+function mergeWithDefaultConfig(mergeFrom: Object): GlobalConfig {
+  const merged = Object.keys(
+    DEFAULT_CONFIG
+  ).reduce((mergedConfig: Object, propName: string): Object => {
+    mergedConfig[propName] = mergeFrom.hasOwnProperty(propName)
+      ? mergeFrom[propName]
+      : DEFAULT_CONFIG[propName];
+
+    return mergedConfig;
+  }, {});
 
   return merged as GlobalConfig;
 }

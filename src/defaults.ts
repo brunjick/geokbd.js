@@ -7,5 +7,5 @@ export const DEFAULT_ENABLED = true;
 export const DEFAULT_CONFIG: GlobalConfig = {
   theme: DEFAULT_THEME,
   hotkey: DEFAULT_HOTKEY,
-  enabled: DEFAULT_ENABLED,
+  enabled: DEFAULT_ENABLED
 };

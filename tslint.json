@@ -34,7 +34,7 @@
       "check-else",
       "check-whitespace",
       "check-open-brace"],
-    "trailing-comma": [true, {"multiline": "always", "singleline": "never"}],
+    "trailing-comma": [false, {"multiline": "always", "singleline": "always"}],
     "quotemark": [true,
       "single",
       "avoid-escape"],
