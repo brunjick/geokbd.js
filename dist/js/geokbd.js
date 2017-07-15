@@ -59,7 +59,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var defaults_1 = __webpack_require__(1);
 	var abstract_1 = __webpack_require__(2);
 	var default_1 = __webpack_require__(3);
-	var keypress_1 = __webpack_require__(5);
+	var keypress_1 = __webpack_require__(4);
 	var GeoKBD = function () {
 	    function GeoKBD() {}
 	    GeoKBD.initialize = function (config) {
@@ -69,7 +69,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.createReactiveConfig(mergeWithDefaultConfig(config));
 	        this.registerDefaultThemeIfRequired();
 	        this.initializeTheme();
-	        this.prepareKeypressEvent = this.prepareKeypressEvent.bind(this);
+	        this.onKeydownHandler = this.onKeydownHandler.bind(this);
+	        this.onKeyupHandler = this.onKeyupHandler.bind(this);
 	        this.initialized = true;
 	    };
 	    GeoKBD.attach = function (target, config) {
@@ -82,14 +83,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return;
 	        }
 	        target.GeoKBD = config;
-	        target.addEventListener('keypress', this.prepareKeypressEvent);
+	        target.addEventListener('keydown', this.onKeydownHandler);
+	        target.addEventListener('keyup', this.onKeyupHandler);
 	        if (GeoKBD.activeTheme) {
 	            GeoKBD.activeTheme.onAttach(target);
 	        }
 	    };
 	    GeoKBD.detach = function (target) {
 	        delete target.GeoKBD;
-	        target.removeEventListener('keypress', this.prepareKeypressEvent);
+	        target.removeEventListener('keydown', this.onKeydownHandler);
+	        target.removeEventListener('keyup', this.onKeyupHandler);
 	        if (GeoKBD.activeTheme) {
 	            GeoKBD.activeTheme.onDetach(target);
 	        }
@@ -116,27 +119,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.registerTheme('default', default_1.default);
 	        }
 	    };
-	    GeoKBD.prepareKeypressEvent = function (evt) {
+	    GeoKBD.onKeydownHandler = function (evt) {
+	        if (isSpecialKeyPressed(evt)) {
+	            return;
+	        }
+	        if (this.config.enabled && isInEnglishAlphabetRange(evt.keyCode)) {
+	            stopEvent(evt);
+	        } else if (this.config.hotkey === evt.key) {
+	            this.config.enabled = !this.config.enabled;
+	            stopEvent(evt);
+	        }
+	    };
+	    GeoKBD.onKeyupHandler = function (evt) {
+	        if (isSpecialKeyPressed(evt) || !isInEnglishAlphabetRange(evt.keyCode)) {
+	            return;
+	        }
+	        // Call beforeChange callback
 	        var beforeChange = evt.target.GeoKBD ? evt.target.GeoKBD.beforeChange : null;
 	        var afterChange = evt.target.GeoKBD ? evt.target.GeoKBD.afterChange : null;
-	        // Invert control
 	        if (!toCallOrNotToCall(beforeChange, evt)) {
 	            return;
 	        }
-	        // Don't capture Ctrl/Meta keypress
-	        if (evt.metaKey || evt.ctrlKey) {
+	        // Return if not enabled
+	        if (!this.config.enabled) {
 	            return;
 	        }
-	        // Check if hotkey was pressed
-	        if (this.config.hotkey === String.fromCharCode(evt.which)) {
-	            evt.preventDefault();
-	            this.config.enabled = !this.config.enabled;
-	            return;
-	        }
-	        if (this.config.enabled) {
-	            keypress_1.default(evt);
-	            toCallOrNotToCall(afterChange, evt);
-	        }
+	        stopEvent(evt);
+	        keypress_1.default(evt);
+	        // Call afterChange callback
+	        toCallOrNotToCall(afterChange, evt);
 	    };
 	    GeoKBD.registerTheme = function (name, theme) {
 	        this.themes[name] = theme;
@@ -187,6 +198,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    return true;
 	}
+	function isSpecialKeyPressed(evt) {
+	    return evt.metaKey || evt.ctrlKey || evt.altKey;
+	}
+	function isInEnglishAlphabetRange(charCode) {
+	    return charCode >= 65 && charCode <= 90 || charCode >= 97 && charCode <= 122;
+	}
+	function stopEvent(evt) {
+	    evt.preventDefault();
+	}
 	function mergeWithDefaultConfig(mergeFrom) {
 	    var merged = Object.keys(defaults_1.DEFAULT_CONFIG).reduce(function (mergedConfig, propName) {
 	        mergedConfig[propName] = mergeFrom.hasOwnProperty(propName) ? mergeFrom[propName] : defaults_1.DEFAULT_CONFIG[propName];
@@ -221,7 +241,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", { value: true });
 	var AbstractTheme = function () {
 	    function AbstractTheme(config) {}
-	    ;
 	    return AbstractTheme;
 	}();
 	exports.default = AbstractTheme;
@@ -250,7 +269,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	}();
 	Object.defineProperty(exports, "__esModule", { value: true });
 	var abstract_1 = __webpack_require__(2);
-	var debounce_1 = __webpack_require__(4);
 	var TEXT_ENABLED = 'ჩართულია';
 	var TEXT_DISABLED = 'გამორთულია';
 	var CLASSNAME = 'geokbd--statusMessage';
@@ -263,7 +281,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __extends(DefaultTheme, _super);
 	    function DefaultTheme(config) {
 	        var _this = _super.call(this, config) || this;
-	        _this.setVisibility = debounce_1.debounce(function (isVisible) {
+	        _this.setVisibility = debounce(function (isVisible) {
 	            if (this.root instanceof Element) {
 	                this.root.className = isVisible ? CLASSNAME_VISIBLE : CLASSNAME_HIDDEN;
 	            }
@@ -323,15 +341,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    el.innerHTML = html;
 	    return el;
 	}
-	exports.default = DefaultTheme;
-
-/***/ },
-/* 4 */
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", { value: true });
 	function debounce(fn, wait) {
 	    var timeout;
 	    return function () {
@@ -344,11 +353,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        timeout = setTimeout(later, wait);
 	    };
 	}
-	exports.debounce = debounce;
-	;
+	exports.default = DefaultTheme;
 
 /***/ },
-/* 5 */
+/* 4 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -363,42 +371,53 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    return charIndex;
 	}
-	function isSelectionSupported($input) {
-	    return typeof $input.selectionStart === 'number' && typeof $input.selectionEnd === 'number';
+	function isSelectionSupported(el) {
+	    return typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number';
 	}
-	function getInputSelection($input) {
+	function getInputSelection(el) {
 	    var start = 0;
 	    var end = 0;
-	    if (isSelectionSupported($input)) {
-	        start = $input.selectionStart;
-	        end = $input.selectionEnd;
+	    if (isSelectionSupported(el)) {
+	        start = el.selectionStart;
+	        end = el.selectionEnd;
 	    }
 	    return { start: start, end: end };
 	}
-	function setInputSelection($input, offset) {
-	    if (isSelectionSupported($input)) {
-	        $input.selectionStart = offset.start;
-	        $input.selectionEnd = offset.end;
+	function setInputSelection(el, offset) {
+	    if (isSelectionSupported(el)) {
+	        el.selectionStart = offset.start;
+	        el.selectionEnd = offset.end;
 	    }
 	    // A little 'hack' to keep natural browser behavior while typing
-	    $input.blur();
-	    $input.focus();
+	    el.blur();
+	    el.focus();
+	}
+	function dispatchCustomKeypressEvent(evt, charCode) {
+	    var customEvent = new KeyboardEvent('keypress', {
+	        key: String.fromCharCode(charCode),
+	        // keyCode: charCode,
+	        // charCode: charCode,
+	        code: evt.code,
+	        location: evt.location,
+	        repeat: evt.repeat
+	    });
+	    evt.target.dispatchEvent(customEvent);
 	}
 	function handleKeypress(evt) {
-	    var $input = evt.target;
-	    var which = evt.which;
-	    var to = convertChar(which);
+	    var el = evt.target;
+	    var charCode = evt.key.charCodeAt(0);
+	    var mappedCharCode = convertChar(charCode);
 	    // Don't take any action if conversion didn't happen
-	    if (which === to) {
+	    if (charCode === mappedCharCode) {
 	        return;
 	    }
-	    evt.preventDefault();
 	    // Insert converted char
-	    var sel = getInputSelection($input);
-	    var val = $input.value;
-	    $input.value = val.slice(0, sel.start) + String.fromCharCode(to) + val.slice(sel.end);
+	    var sel = getInputSelection(el);
+	    var val = el.value;
+	    el.value = val.slice(0, sel.start) + String.fromCharCode(mappedCharCode) + val.slice(sel.end);
 	    // Move caret to correct position
-	    setInputSelection($input, { start: sel.start + 1, end: sel.start + 1 });
+	    setInputSelection(el, { start: sel.start + 1, end: sel.start + 1 });
+	    dispatchCustomKeypressEvent(evt, mappedCharCode);
 	}
 	exports.default = handleKeypress;
 
