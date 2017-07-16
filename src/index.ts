@@ -108,24 +108,14 @@ class GeoKBD {
   }
 
   private static onKeyupHandler(evt: CustomKeyboardEvent) {
-    if (isSpecialKeyPressed(evt) || !isInEnglishAlphabetRange(evt.keyCode)) {
+    const elementConfig = evt.target.GeoKBD;
+
+    if (!this.config.enabled || !elementConfig || !isEventProcessable(evt)) {
       return;
     }
 
     // Call beforeChange callback
-    const beforeChange = evt.target.GeoKBD
-      ? evt.target.GeoKBD.beforeChange
-      : null;
-    const afterChange = evt.target.GeoKBD
-      ? evt.target.GeoKBD.afterChange
-      : null;
-
-    if (!toCallOrNotToCall(beforeChange, evt)) {
-      return;
-    }
-
-    // Return if not enabled
-    if (!this.config.enabled) {
+    if (!toCallOrNotToCall(elementConfig.beforeChange, evt)) {
       return;
     }
 
@@ -133,7 +123,7 @@ class GeoKBD {
     handleKeypressEvent(evt);
 
     // Call afterChange callback
-    toCallOrNotToCall(afterChange, evt);
+    toCallOrNotToCall(elementConfig.afterChange, evt);
   }
 
   public static registerTheme(name: string, theme: any) {
@@ -182,6 +172,14 @@ function toCallOrNotToCall(fn: any, ...args: any[]): boolean {
   }
 
   return true;
+}
+
+function isEventProcessable(evt: KeyboardEvent) {
+  return !(
+    isSpecialKeyPressed(evt) ||
+    !isInEnglishAlphabetRange(evt.keyCode) ||
+    !isInEnglishAlphabetRange(evt.key.charCodeAt(0))
+  );
 }
 
 function isSpecialKeyPressed(evt: KeyboardEvent) {
