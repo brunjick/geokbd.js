@@ -29,7 +29,6 @@ class GeoKBD {
     this.initializeTheme();
 
     this.onKeydownHandler = this.onKeydownHandler.bind(this);
-    this.onKeyupHandler = this.onKeyupHandler.bind(this);
     this.initialized = true;
   }
 
@@ -49,7 +48,6 @@ class GeoKBD {
 
     target.GeoKBD = config;
     target.addEventListener('keydown', this.onKeydownHandler);
-    target.addEventListener('keyup', this.onKeyupHandler);
 
     if (GeoKBD.activeTheme) {
       GeoKBD.activeTheme.onAttach(target);
@@ -59,7 +57,6 @@ class GeoKBD {
   public static detach(target: TargetElement) {
     delete target.GeoKBD;
     target.removeEventListener('keydown', this.onKeydownHandler);
-    target.removeEventListener('keyup', this.onKeyupHandler);
 
     if (GeoKBD.activeTheme) {
       GeoKBD.activeTheme.onDetach(target);
@@ -90,27 +87,24 @@ class GeoKBD {
     }
   }
 
-  private static onKeydownHandler(evt: KeyboardEvent) {
-    if (isSpecialKeyPressed(evt)) {
+  private static toggleEnabled() {
+    this.config.enabled = !this.config.enabled;
+  }
+
+  private static onKeydownHandler(evt: CustomKeyboardEvent) {
+    const elementConfig = evt.target.GeoKBD;
+
+    if (isSpecialKeyPressed(evt) || !elementConfig) {
       return;
     }
 
-    if (
-      this.config.enabled &&
-      isInEnglishAlphabetRange(evt.keyCode) &&
-      isInEnglishAlphabetRange(evt.key.charCodeAt(0))
-    ) {
+    if (this.config.hotkey === evt.key) {
+      this.toggleEnabled();
       stopEvent(evt);
-    } else if (this.config.hotkey === evt.key) {
-      this.config.enabled = !this.config.enabled;
-      stopEvent(evt);
+      return;
     }
-  }
 
-  private static onKeyupHandler(evt: CustomKeyboardEvent) {
-    const elementConfig = evt.target.GeoKBD;
-
-    if (!this.config.enabled || !elementConfig || !isEventProcessable(evt)) {
+    if (!this.config.enabled || !isAlphabetKeyPressed(evt)) {
       return;
     }
 
@@ -174,22 +168,12 @@ function toCallOrNotToCall(fn: any, ...args: any[]): boolean {
   return true;
 }
 
-function isEventProcessable(evt: KeyboardEvent) {
-  return !(
-    isSpecialKeyPressed(evt) ||
-    !isInEnglishAlphabetRange(evt.keyCode) ||
-    !isInEnglishAlphabetRange(evt.key.charCodeAt(0))
-  );
+function isAlphabetKeyPressed(evt: KeyboardEvent) {
+  return /^Key[A-Z]$/.test(evt.code);
 }
 
 function isSpecialKeyPressed(evt: KeyboardEvent) {
   return evt.metaKey || evt.ctrlKey || evt.altKey;
-}
-
-function isInEnglishAlphabetRange(charCode: number) {
-  return (
-    (charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122)
-  );
 }
 
 function stopEvent(evt: Event) {
