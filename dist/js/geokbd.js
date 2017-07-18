@@ -129,7 +129,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            stopEvent(evt);
 	            return;
 	        }
-	        if (!this.config.enabled || !isAlphabetKeyPressed(evt)) {
+	        if (!this.config.enabled || !isAlphabetKeyPressed(evt) || isGeorgianKeyPressed(evt)) {
 	            return;
 	        }
 	        // Call beforeChange callback
@@ -192,6 +192,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	function isAlphabetKeyPressed(evt) {
 	    return (/^Key[A-Z]$/.test(evt.code)
+	    );
+	}
+	function isGeorgianKeyPressed(evt) {
+	    return (/^[ა-ჰ]+$/.test(evt.key)
 	    );
 	}
 	function isSpecialKeyPressed(evt) {
