@@ -70,7 +70,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.registerDefaultThemeIfRequired();
 	        this.initializeTheme();
 	        this.onKeydownHandler = this.onKeydownHandler.bind(this);
-	        this.onKeyupHandler = this.onKeyupHandler.bind(this);
 	        this.initialized = true;
 	    };
 	    GeoKBD.attach = function (target, config) {
@@ -84,7 +83,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        target.GeoKBD = config;
 	        target.addEventListener('keydown', this.onKeydownHandler);
-	        target.addEventListener('keyup', this.onKeyupHandler);
 	        if (GeoKBD.activeTheme) {
 	            GeoKBD.activeTheme.onAttach(target);
 	        }
@@ -92,7 +90,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    GeoKBD.detach = function (target) {
 	        delete target.GeoKBD;
 	        target.removeEventListener('keydown', this.onKeydownHandler);
-	        target.removeEventListener('keyup', this.onKeyupHandler);
 	        if (GeoKBD.activeTheme) {
 	            GeoKBD.activeTheme.onDetach(target);
 	        }
@@ -119,20 +116,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.registerTheme('default', default_1.default);
 	        }
 	    };
+	    GeoKBD.toggleEnabled = function () {
+	        this.config.enabled = !this.config.enabled;
+	    };
 	    GeoKBD.onKeydownHandler = function (evt) {
-	        if (isSpecialKeyPressed(evt)) {
+	        var elementConfig = evt.target.GeoKBD;
+	        if (isSpecialKeyPressed(evt) || !elementConfig) {
 	            return;
 	        }
-	        if (this.config.enabled && isInEnglishAlphabetRange(evt.keyCode) && isInEnglishAlphabetRange(evt.key.charCodeAt(0))) {
+	        if (this.config.hotkey === evt.key) {
+	            this.toggleEnabled();
 	            stopEvent(evt);
-	        } else if (this.config.hotkey === evt.key) {
-	            this.config.enabled = !this.config.enabled;
-	            stopEvent(evt);
+	            return;
 	        }
-	    };
-	    GeoKBD.onKeyupHandler = function (evt) {
-	        var elementConfig = evt.target.GeoKBD;
-	        if (!this.config.enabled || !elementConfig || !isEventProcessable(evt)) {
+	        if (!this.config.enabled || !isAlphabetKeyPressed(evt)) {
 	            return;
 	        }
 	        // Call beforeChange callback
@@ -193,14 +190,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    return true;
 	}
-	function isEventProcessable(evt) {
-	    return !(isSpecialKeyPressed(evt) || !isInEnglishAlphabetRange(evt.keyCode) || !isInEnglishAlphabetRange(evt.key.charCodeAt(0)));
+	function isAlphabetKeyPressed(evt) {
+	    return (/^Key[A-Z]$/.test(evt.code)
+	    );
 	}
 	function isSpecialKeyPressed(evt) {
 	    return evt.metaKey || evt.ctrlKey || evt.altKey;
-	}
-	function isInEnglishAlphabetRange(charCode) {
-	    return charCode >= 65 && charCode <= 90 || charCode >= 97 && charCode <= 122;
 	}
 	function stopEvent(evt) {
 	    evt.preventDefault();
