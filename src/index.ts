@@ -104,7 +104,7 @@ class GeoKBD {
       return;
     }
 
-    if (!this.config.enabled || !isAlphabetKeyPressed(evt)) {
+    if (!this.config.enabled || !isAlphabetKeyPressed(evt) || isGeorgianKeyPressed(evt)) {
       return;
     }
 
@@ -170,6 +170,10 @@ function toCallOrNotToCall(fn: any, ...args: any[]): boolean {
 
 function isAlphabetKeyPressed(evt: KeyboardEvent) {
   return /^Key[A-Z]$/.test(evt.code);
+}
+
+function isGeorgianKeyPressed(evt: KeyboardEvent) {
+  return /^[ა-ჰ]+$/.test(evt.key);
 }
 
 function isSpecialKeyPressed(evt: KeyboardEvent) {
