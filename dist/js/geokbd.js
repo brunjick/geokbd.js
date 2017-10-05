@@ -73,19 +73,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.initialized = true;
 	    };
 	    GeoKBD.attach = function (target, config) {
+	        if (config === void 0) {
+	            config = {};
+	        }
 	        if (!this.initialized) {
 	            warn("attach() can't be called until initialize().");
-	            return;
+	            return false;
 	        }
-	        if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLTextAreaElement)) {
+	        if (!isTextElement(target)) {
 	            warn('only works for <input> and <textarea> elements.');
-	            return;
+	            return false;
 	        }
 	        target.GeoKBD = config;
 	        target.addEventListener('keydown', this.onKeydownHandler);
 	        if (GeoKBD.activeTheme) {
 	            GeoKBD.activeTheme.onAttach(target);
 	        }
+	        return target;
 	    };
 	    GeoKBD.detach = function (target) {
 	        delete target.GeoKBD;
@@ -132,30 +136,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!this.config.enabled || !isAlphabetKeyPressed(evt) || isGeorgianKeyPressed(evt)) {
 	            return;
 	        }
-	        // Call beforeChange callback
-	        if (!toCallOrNotToCall(elementConfig.beforeChange, evt)) {
-	            return;
-	        }
 	        stopEvent(evt);
 	        keypress_1.default(evt);
-	        // Call afterChange callback
-	        toCallOrNotToCall(elementConfig.afterChange, evt);
 	    };
 	    GeoKBD.registerTheme = function (name, theme) {
 	        this.themes[name] = theme;
-	    };
-	    GeoKBD.import = function (module) {
-	        switch (module) {
-	            case 'themes/abstract':
-	                {
-	                    return abstract_1.default;
-	                }
-	            case 'themes/default':
-	                {
-	                    return default_1.default;
-	                }
-	        }
-	        return undefined;
 	    };
 	    GeoKBD.initializeTheme = function () {
 	        var themeClass = this.themes[this.config.theme];
@@ -163,13 +148,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            warn("Can't instantiate theme.");
 	            return;
 	        }
-	        var theme = new themeClass(this.config);
-	        if (!(theme instanceof abstract_1.default)) {
-	            warn("Theme doesn't extend AbstractTheme");
-	            return;
-	        } else {
-	            this.activeTheme = theme;
-	        }
+	        this.activeTheme = new themeClass(this.config);
 	    };
 	    return GeoKBD;
 	}();
@@ -179,16 +158,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	GeoKBD.initialized = false;
 	function warn(message) {
 	    console.warn('[geokbd] - ' + message);
-	}
-	function toCallOrNotToCall(fn) {
-	    var args = [];
-	    for (var _i = 1; _i < arguments.length; _i++) {
-	        args[_i - 1] = arguments[_i];
-	    }
-	    if (typeof fn === 'function') {
-	        return fn.apply(null, args) === false ? false : true;
-	    }
-	    return true;
 	}
 	function isAlphabetKeyPressed(evt) {
 	    return (/^Key[A-Z]$/.test(evt.code)
@@ -200,6 +169,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	function isSpecialKeyPressed(evt) {
 	    return evt.metaKey || evt.ctrlKey || evt.altKey;
+	}
+	function isTextElement(el) {
+	    return (/(text)(area)?/.test(el.type)
+	    );
 	}
 	function stopEvent(evt) {
 	    evt.preventDefault();
