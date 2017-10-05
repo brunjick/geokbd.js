@@ -76,57 +76,46 @@
 <script src="./dist/js/geokbd.js"></script>
 <script>
   let GeoKBD = window['geokbd'], slice = [].slice;
+  let Fns = {
+    Truthy: kata => kata !== false,
+    AttachKBD: kayakata => GeoKBD.attach(kayakata),
+    DetachKBD: katakatakata => GeoKBD.detach(katakatakata)
+  };
+
+  // Select element to display last pressed key
+  let lastKeyEl = document.querySelector('#last-key');
 
   // Get all elements with 'geokbd' attribute
   // and convert NodeList to normal Array object
   let $inputElements = slice.call(
     document.querySelectorAll('[geokbd]')
   );
-  let lastKeyEl = document.querySelector('#last-key');
-
-  // Initialize
-  GeoKBD.initialize();
-  attachAll();
 
   // Attach plugin functionality to all target elements
   function attachAll() {
-    // Optional configuration
-    let sharedConf = {
-      // Called before input changes
-      beforeChange: function (evt) {
-        console.log('before change', evt.target);
-
-        if (String.fromCharCode(evt.key).toLowerCase() === 's') {
-          // Returning false will prevent change,
-          // therefore afterChange() won't be called
-          return false;
-        }
-      },
-
-      // Called after input changes
-      afterChange: function (evt) {
-        console.log('after change', evt.target);
-      }
-    };
-
-    $inputElements.forEach(target => {
-        GeoKBD.attach(target, sharedConf)
-
+    $inputElements
+      .map(Fns.AttachKBD).filter(Fns.Truthy)
+      .map(target => {
         // If you want to attach your own listener,
         // keypress event with corrected values is dispatched for ya.
         //
         // Avoid relying on keydown/keyup events, as they are
         // used internally to make conversion happen
         target.addEventListener('keypress', function (evt) {
-            lastKeyEl.textContent = evt.key;
-        })
-    });
+          lastKeyEl.textContent = evt.key;
+        });
+      })
   }
 
   // Detach from all target elements
   function detachAll() {
-    $inputElements.forEach(target => GeoKBD.detach(target));
+    $inputElements
+      .map(Fns.DetachKBD);
   }
+
+  // Initialize
+  GeoKBD.initialize();
+  attachAll();
 </script>
 </body>
 </html>
