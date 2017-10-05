@@ -32,18 +32,15 @@ class GeoKBD {
     this.initialized = true;
   }
 
-  public static attach(target: TargetElement, config: TargetConfig) {
+  public static attach(target: TargetElement, config: TargetConfig = {}) {
     if (!this.initialized) {
       warn("attach() can't be called until initialize().");
-      return;
+      return false;
     }
 
-    if (
-      !(target instanceof HTMLInputElement) &&
-      !(target instanceof HTMLTextAreaElement)
-    ) {
+    if (!isTextElement(target)) {
       warn('only works for <input> and <textarea> elements.');
-      return;
+      return false;
     }
 
     target.GeoKBD = config;
@@ -52,6 +49,8 @@ class GeoKBD {
     if (GeoKBD.activeTheme) {
       GeoKBD.activeTheme.onAttach(target);
     }
+
+    return target;
   }
 
   public static detach(target: TargetElement) {
@@ -108,34 +107,12 @@ class GeoKBD {
       return;
     }
 
-    // Call beforeChange callback
-    if (!toCallOrNotToCall(elementConfig.beforeChange, evt)) {
-      return;
-    }
-
     stopEvent(evt);
     handleKeypressEvent(evt);
-
-    // Call afterChange callback
-    toCallOrNotToCall(elementConfig.afterChange, evt);
   }
 
   public static registerTheme(name: string, theme: any) {
     this.themes[name] = theme;
-  }
-
-  public static import(module: string): any {
-    switch (module) {
-      case 'themes/abstract': {
-        return AbstractTheme;
-      }
-
-      case 'themes/default': {
-        return DefaultTheme;
-      }
-    }
-
-    return undefined;
   }
 
   private static initializeTheme(): void {
@@ -145,27 +122,13 @@ class GeoKBD {
       warn("Can't instantiate theme.");
       return;
     }
-    let theme = new themeClass(this.config);
 
-    if (!(theme instanceof AbstractTheme)) {
-      warn("Theme doesn't extend AbstractTheme");
-      return;
-    } else {
-      this.activeTheme = theme;
-    }
+    this.activeTheme = new themeClass(this.config);
   }
 }
 
 function warn(message: string): void {
   console.warn('[geokbd] - ' + message);
-}
-
-function toCallOrNotToCall(fn: any, ...args: any[]): boolean {
-  if (typeof fn === 'function') {
-    return fn.apply(null, args) === false ? false : true;
-  }
-
-  return true;
 }
 
 function isAlphabetKeyPressed(evt: KeyboardEvent) {
@@ -178,6 +141,10 @@ function isGeorgianKeyPressed(evt: KeyboardEvent) {
 
 function isSpecialKeyPressed(evt: KeyboardEvent) {
   return evt.metaKey || evt.ctrlKey || evt.altKey;
+}
+
+function isTextElement(el: any) {
+  return /(text)(area)?/.test(el.type)
 }
 
 function stopEvent(evt: Event) {

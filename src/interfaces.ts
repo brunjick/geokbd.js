@@ -9,8 +9,6 @@ export interface GlobalConfig {
 }
 
 export interface TargetConfig {
-  beforeChange: Function;
-  afterChange: Function;
 }
 
 export interface TargetElement extends HTMLInputElement {
