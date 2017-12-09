@@ -1,4 +1,4 @@
-# geokbd.js
+# geokbd.js - [Demo](https://rawgit.com/thisdotvoid/geokbd.js/master/example.html)
 
 Georgian virtual keyboard
 
