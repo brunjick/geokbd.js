@@ -7,6 +7,7 @@ Georgian virtual keyboard
 With script tag:
 
 ```html
+<link href="/path/to/package/dist/css/themes/default.min.css" rel="stylesheet" /> <!-- optional -->
 <script src="/path/to/package/dist/js/geokbd.min.js"></script>
 <script>
   var GeoKBD = window['geokbd'];
