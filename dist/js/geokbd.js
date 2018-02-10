@@ -56,108 +56,141 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	"use strict";
 	
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
 	var defaults_1 = __webpack_require__(1);
-	var abstract_1 = __webpack_require__(2);
-	var default_1 = __webpack_require__(3);
+	var default_1 = __webpack_require__(2);
 	var keypress_1 = __webpack_require__(4);
+	
 	var GeoKBD = function () {
-	    function GeoKBD() {}
-	    GeoKBD.initialize = function (config) {
-	        if (config === void 0) {
-	            config = {};
+	    function GeoKBD() {
+	        _classCallCheck(this, GeoKBD);
+	    }
+	
+	    _createClass(GeoKBD, null, [{
+	        key: "initialize",
+	        value: function initialize() {
+	            var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+	
+	            this.createMergedConfig(config);
+	            this.registerDefaultThemeIfRequired();
+	            this.initializeTheme();
+	            this.onKeydownHandler = this.onKeydownHandler.bind(this);
+	            this.initialized = true;
 	        }
-	        this.createReactiveConfig(mergeWithDefaultConfig(config));
-	        this.registerDefaultThemeIfRequired();
-	        this.initializeTheme();
-	        this.onKeydownHandler = this.onKeydownHandler.bind(this);
-	        this.initialized = true;
-	    };
-	    GeoKBD.attach = function (target, config) {
-	        if (config === void 0) {
-	            config = {};
+	    }, {
+	        key: "attach",
+	        value: function attach(target) {
+	            if (!this.initialized) {
+	                warn("attach() can't be called until initialize().");
+	                return false;
+	            }
+	            if (!isTextElement(target)) {
+	                warn('only works for <input> and <textarea> elements.');
+	                return false;
+	            }
+	            target.addEventListener('keydown', this.onKeydownHandler);
+	            if (this.activeTheme) {
+	                this.activeTheme.onAttach(target);
+	            }
+	            return target;
 	        }
-	        if (!this.initialized) {
-	            warn("attach() can't be called until initialize().");
-	            return false;
+	    }, {
+	        key: "detach",
+	        value: function detach(target) {
+	            target.removeEventListener('keydown', this.onKeydownHandler);
+	            if (this.activeTheme) {
+	                this.activeTheme.onDetach(target);
+	            }
 	        }
-	        if (!isTextElement(target)) {
-	            warn('only works for <input> and <textarea> elements.');
-	            return false;
+	    }, {
+	        key: "createMergedConfig",
+	        value: function createMergedConfig(config) {
+	            this.config = Object.keys(defaults_1.DEFAULT_CONFIG).map(function (configKey) {
+	                var defaultValue = defaults_1.DEFAULT_CONFIG[configKey];
+	                var toMergeWith = config[configKey];
+	                return {
+	                    key: configKey,
+	                    value: typesMatch(defaultValue, toMergeWith) ? toMergeWith : defaultValue
+	                };
+	            }).reduce(function (mergedConfig, keyValue) {
+	                mergedConfig[keyValue.key] = keyValue.value;
+	                return mergedConfig;
+	            }, {});
 	        }
-	        target.GeoKBD = config;
-	        target.addEventListener('keydown', this.onKeydownHandler);
-	        if (GeoKBD.activeTheme) {
-	            GeoKBD.activeTheme.onAttach(target);
-	        }
-	        return target;
-	    };
-	    GeoKBD.detach = function (target) {
-	        delete target.GeoKBD;
-	        target.removeEventListener('keydown', this.onKeydownHandler);
-	        if (GeoKBD.activeTheme) {
-	            GeoKBD.activeTheme.onDetach(target);
-	        }
-	    };
-	    GeoKBD.createReactiveConfig = function (config) {
-	        var _this = this;
-	        this.shadowConfig = config;
-	        Object.keys(defaults_1.DEFAULT_CONFIG).forEach(function (propName) {
-	            Object.defineProperty(_this.config, propName, {
-	                get: function get() {
-	                    return GeoKBD.shadowConfig[propName];
-	                },
-	                set: function set(newValue) {
-	                    GeoKBD.shadowConfig[propName] = newValue;
-	                    if (GeoKBD.activeTheme instanceof abstract_1.default) {
-	                        GeoKBD.activeTheme.onConfigurationChange(GeoKBD.config);
-	                    }
+	    }, {
+	        key: "setConfig",
+	        value: function setConfig(key, value) {
+	            if (typesMatch(this.config[key], value)) {
+	                this.config[key] = value;
+	                if (this.activeTheme) {
+	                    this.activeTheme.onConfigurationChange(this.config);
 	                }
-	            });
-	        });
-	    };
-	    GeoKBD.registerDefaultThemeIfRequired = function () {
-	        if (this.config.theme === 'default') {
-	            this.registerTheme('default', default_1.default);
+	            }
 	        }
-	    };
-	    GeoKBD.toggleEnabled = function () {
-	        this.config.enabled = !this.config.enabled;
-	    };
-	    GeoKBD.onKeydownHandler = function (evt) {
-	        var elementConfig = evt.target.GeoKBD;
-	        if (isSpecialKeyPressed(evt) || !elementConfig) {
-	            return;
+	    }, {
+	        key: "registerDefaultThemeIfRequired",
+	        value: function registerDefaultThemeIfRequired() {
+	            if (this.config.theme === 'default') {
+	                this.registerTheme('default', default_1.default);
+	            }
 	        }
-	        if (this.config.hotkey === evt.key) {
-	            this.toggleEnabled();
+	    }, {
+	        key: "toggleEnabled",
+	        value: function toggleEnabled() {
+	            this.setConfig('enabled', !this.config.enabled);
+	        }
+	    }, {
+	        key: "onKeydownHandler",
+	        value: function onKeydownHandler(evt) {
+	            if (isSpecialKeyPressed(evt)) {
+	                return;
+	            }
+	            if (this.config.hotkey === evt.key) {
+	                this.toggleEnabled();
+	                stopEvent(evt);
+	                return;
+	            }
+	            if (!this.config.enabled || !isAlphabetKeyPressed(evt) || isGeorgianKeyPressed(evt)) {
+	                return;
+	            }
 	            stopEvent(evt);
-	            return;
+	            keypress_1.default(evt);
 	        }
-	        if (!this.config.enabled || !isAlphabetKeyPressed(evt) || isGeorgianKeyPressed(evt)) {
-	            return;
+	    }, {
+	        key: "registerTheme",
+	        value: function registerTheme(name, theme) {
+	            this.themes.set(name, theme);
 	        }
-	        stopEvent(evt);
-	        keypress_1.default(evt);
-	    };
-	    GeoKBD.registerTheme = function (name, theme) {
-	        this.themes[name] = theme;
-	    };
-	    GeoKBD.initializeTheme = function () {
-	        var themeClass = this.themes[this.config.theme];
-	        if (typeof themeClass !== 'function') {
-	            warn("Can't instantiate theme.");
-	            return;
+	    }, {
+	        key: "initializeTheme",
+	        value: function initializeTheme() {
+	            var ThemeClass = this.themes.get(this.config.theme);
+	            if (typeof ThemeClass !== 'function') {
+	                warn("Can't instantiate theme.");
+	                return;
+	            }
+	            this.activeTheme = new ThemeClass(this.config);
 	        }
-	        this.activeTheme = new themeClass(this.config);
-	    };
+	    }]);
+	
 	    return GeoKBD;
 	}();
-	GeoKBD.themes = {};
-	GeoKBD.config = defaults_1.DEFAULT_CONFIG;
-	GeoKBD.shadowConfig = {};
+	
 	GeoKBD.initialized = false;
+	GeoKBD.themes = new Map();
 	function warn(message) {
 	    console.warn('[geokbd] - ' + message);
+	}
+	function typesMatch(arg1, arg2) {
+	    return (typeof arg1 === "undefined" ? "undefined" : _typeof(arg1)) === (typeof arg2 === "undefined" ? "undefined" : _typeof(arg2));
+	}
+	function isSpecialKeyPressed(evt) {
+	    return evt.metaKey || evt.ctrlKey || evt.altKey;
 	}
 	function isAlphabetKeyPressed(evt) {
 	    return (/^Key[A-Z]$/.test(evt.code)
@@ -167,22 +200,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return (/^[ა-ჰ]+$/.test(evt.key)
 	    );
 	}
-	function isSpecialKeyPressed(evt) {
-	    return evt.metaKey || evt.ctrlKey || evt.altKey;
-	}
 	function isTextElement(el) {
 	    return (/(text)(area)?/.test(el.type)
 	    );
 	}
 	function stopEvent(evt) {
 	    evt.preventDefault();
-	}
-	function mergeWithDefaultConfig(mergeFrom) {
-	    var merged = Object.keys(defaults_1.DEFAULT_CONFIG).reduce(function (mergedConfig, propName) {
-	        mergedConfig[propName] = mergeFrom.hasOwnProperty(propName) ? mergeFrom[propName] : defaults_1.DEFAULT_CONFIG[propName];
-	        return mergedConfig;
-	    }, {});
-	    return merged;
 	}
 	module.exports = GeoKBD;
 
@@ -204,41 +227,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 2 */
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", { value: true });
-	var AbstractTheme = function () {
-	    function AbstractTheme(config) {}
-	    return AbstractTheme;
-	}();
-	exports.default = AbstractTheme;
-
-/***/ },
-/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	var __extends = undefined && undefined.__extends || function () {
-	    var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
-	        d.__proto__ = b;
-	    } || function (d, b) {
-	        for (var p in b) {
-	            if (b.hasOwnProperty(p)) d[p] = b[p];
-	        }
-	    };
-	    return function (d, b) {
-	        extendStatics(d, b);
-	        function __() {
-	            this.constructor = d;
-	        }
-	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	    };
-	}();
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
 	Object.defineProperty(exports, "__esModule", { value: true });
-	var abstract_1 = __webpack_require__(2);
+	var abstract_1 = __webpack_require__(3);
 	var TEXT_ENABLED = 'ჩართულია';
 	var TEXT_DISABLED = 'გამორთულია';
 	var CLASSNAME = 'geokbd--statusMessage';
@@ -247,10 +249,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	var CLASSNAME_HIDDEN = CLASSNAME + ' geokbd--hidden';
 	var CLASSNAME_VISIBLE = CLASSNAME + ' geokbd--visible';
 	var TEMPLATE = ['<div class="' + CLASSNAME + '-text">', 'ქართული კლავიატურა: <u class="' + CLASSNAME_STATE + '"></u><br>', 'ჩართვა/გამორთვა კლავიშით (\'<span class="' + CLASSNAME_HOTKEY + '"></span>\')', '</div>'].join('');
-	var DefaultTheme = function (_super) {
-	    __extends(DefaultTheme, _super);
+	
+	var DefaultTheme = function (_abstract_1$default) {
+	    _inherits(DefaultTheme, _abstract_1$default);
+	
 	    function DefaultTheme(config) {
-	        var _this = _super.call(this, config) || this;
+	        _classCallCheck(this, DefaultTheme);
+	
+	        var _this = _possibleConstructorReturn(this, (DefaultTheme.__proto__ || Object.getPrototypeOf(DefaultTheme)).call(this, config));
+	
 	        _this.setVisibility = debounce(function (isVisible) {
 	            if (this.root instanceof Element) {
 	                this.root.className = isVisible ? CLASSNAME_VISIBLE : CLASSNAME_HIDDEN;
@@ -267,52 +274,72 @@ return /******/ (function(modules) { // webpackBootstrap
 	        document.body.appendChild(_this.root);
 	        return _this;
 	    }
-	    DefaultTheme.prototype.onAttach = function (target) {
-	        target.addEventListener('focus', this.handleFocusEvent);
-	        target.addEventListener('blur', this.handleBlurEvent);
-	    };
-	    DefaultTheme.prototype.onConfigurationChange = function (config) {
-	        this.setHotkeyText(config.hotkey);
-	        this.setEnabledText(config.enabled);
-	    };
-	    DefaultTheme.prototype.onDetach = function (target) {
-	        target.removeEventListener('focus', this.handleFocusEvent);
-	        target.removeEventListener('blur', this.handleBlurEvent);
-	    };
-	    DefaultTheme.prototype.onDestroy = function () {
-	        if (this.root instanceof Element) {
-	            this.root.remove();
+	
+	    _createClass(DefaultTheme, [{
+	        key: "onAttach",
+	        value: function onAttach(target) {
+	            target.addEventListener('focus', this.handleFocusEvent);
+	            target.addEventListener('blur', this.handleBlurEvent);
 	        }
-	        this.root = undefined;
-	        this.state = undefined;
-	        this.hotkey = undefined;
-	    };
-	    DefaultTheme.prototype.handleFocusEvent = function () {
-	        this.setVisibility(true);
-	    };
-	    DefaultTheme.prototype.handleBlurEvent = function () {
-	        this.setVisibility(false);
-	    };
-	    DefaultTheme.prototype.setHotkeyText = function (hotkey) {
-	        if (this.hotkey instanceof Element) {
-	            this.hotkey.innerHTML = hotkey;
+	    }, {
+	        key: "onConfigurationChange",
+	        value: function onConfigurationChange(config) {
+	            this.setHotkeyText(config.hotkey);
+	            this.setEnabledText(config.enabled);
 	        }
-	    };
-	    DefaultTheme.prototype.setEnabledText = function (isEnabled) {
-	        if (this.state instanceof Element) {
-	            this.state.innerHTML = isEnabled ? TEXT_ENABLED : TEXT_DISABLED;
+	    }, {
+	        key: "onDetach",
+	        value: function onDetach(target) {
+	            target.removeEventListener('focus', this.handleFocusEvent);
+	            target.removeEventListener('blur', this.handleBlurEvent);
 	        }
-	    };
+	    }, {
+	        key: "onDestroy",
+	        value: function onDestroy() {
+	            if (this.root instanceof Element) {
+	                this.root.remove();
+	            }
+	            this.root = undefined;
+	            this.state = undefined;
+	            this.hotkey = undefined;
+	        }
+	    }, {
+	        key: "handleFocusEvent",
+	        value: function handleFocusEvent() {
+	            this.setVisibility(true);
+	        }
+	    }, {
+	        key: "handleBlurEvent",
+	        value: function handleBlurEvent() {
+	            this.setVisibility(false);
+	        }
+	    }, {
+	        key: "setHotkeyText",
+	        value: function setHotkeyText(hotkey) {
+	            if (this.hotkey instanceof Element) {
+	                this.hotkey.innerHTML = hotkey;
+	            }
+	        }
+	    }, {
+	        key: "setEnabledText",
+	        value: function setEnabledText(isEnabled) {
+	            if (this.state instanceof Element) {
+	                this.state.innerHTML = isEnabled ? TEXT_ENABLED : TEXT_DISABLED;
+	            }
+	        }
+	    }]);
+	
 	    return DefaultTheme;
 	}(abstract_1.default);
+	
 	function createDivWithHtml(html) {
-	    var el;
+	    var el = void 0;
 	    el = document.createElement('div');
 	    el.innerHTML = html;
 	    return el;
 	}
 	function debounce(fn, wait) {
-	    var timeout;
+	    var timeout = void 0;
 	    return function () {
 	        var context = this;
 	        var args = arguments;
@@ -324,6 +351,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 	}
 	exports.default = DefaultTheme;
+
+/***/ },
+/* 3 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	Object.defineProperty(exports, "__esModule", { value: true });
+	
+	var AbstractTheme = function AbstractTheme(config) {
+	    _classCallCheck(this, AbstractTheme);
+	};
+	
+	exports.default = AbstractTheme;
 
 /***/ },
 /* 4 */
